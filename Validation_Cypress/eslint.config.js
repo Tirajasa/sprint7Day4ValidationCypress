@@ -29,6 +29,9 @@ export default [
       ...react.configs['jsx-runtime'].rules,
       ...reactHooks.configs.recommended.rules,
       'react/jsx-no-target-blank': 'off',
+      test: /\.tsx?$/,
+                use: 'ts-loader',
+                exclude: /node_modules/,
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
