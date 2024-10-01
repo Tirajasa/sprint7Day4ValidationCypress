@@ -1,8 +1,10 @@
+import axios from "axios";
 import { useEffect, useState } from "react";
 import {
   Button,
   Card,
   CardBody,
+  CardFooter,
   CardHeader,
   Form,
   FormFeedback,
@@ -16,9 +18,9 @@ const initialValues={
     email:"",
     password:"",
 };
-const errorMessages={
+export const errorMessages={
     name:"Write more than 2 letters ",
-    lastname:"rite more than 2 letters",
+    lastname:"Write more than 2 letters",
     email:"Write a validated email.",
     password:"at least 8 characters it must have which should consist of  an uppercase,a lowercase,a digit and a symbol",
 }
@@ -31,6 +33,7 @@ export default function Register() {
         password:false,
     });
     const [isValid,setIsValid]=useState(false);
+    const [id,setId]=useState("");
 
     const validateEmail = (email) => {
         return String(email)
@@ -43,17 +46,19 @@ export default function Register() {
     let regex = 
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@.#$!%*?&])[A-Za-z\d@.#$!^%*?&]{8,15}$/; 
     
+    useEffect(() => {
+      if (
+          formData.name.trim().length >= 3 &&
+          formData.lastname.trim().length >= 3 &&
+          validateEmail(formData.email) &&
+          regex.test(formData.password)
+      ) {
+          setIsValid(true);
+      } else {
+          setIsValid(false);
+      }
+  }, [formData.name, formData.lastname, formData.email, formData.password]);
 
-    useEffect(()=>{
-        if(formData.name.trim().length>=3&&formData.lastname.trim().length>=3&&
-    validateEmail(formData.email)&& regex.test(formData.password)){
-        setIsValid(true);
-        }else{
-            setIsValid(false);
-        }
-    
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    },[formData]);
     
     function handleChange(event){
 
@@ -61,7 +66,7 @@ export default function Register() {
         setFormData({...formData,[name]:value});
    
         if(name=="name"|| name=="lastname"){
-            if(value.trim().lenght>=3){
+            if(value.trim().length>=3){
                 setErrors({...errors,[name]: false});
              
             }else{ 
@@ -82,11 +87,21 @@ export default function Register() {
         }else{
             setErrors({...errors,[name]: true});
         }
-    }
+    } 
 }
     function handleSubmit(event){
         event.preventDefault();
         if(!isValid)return;
+
+  axios.post("https://reqres.in/api/users",formData)
+  .then(response=>{
+    console.log(response);
+    setFormData(initialValues);
+    setId(response.data.id);
+  })
+  .catch(error=>{
+    console.log(error);
+  })
     }
   return (
     <>
@@ -103,10 +118,10 @@ export default function Register() {
                 type="text"
                 onChange={handleChange}
                 value={formData.name}
+                invalid={errors.name}
+                data-cy="name-input"
               />
-              {errors.name &&<FormFeedback>
-                {errorMessages.name}
-            </FormFeedback>}
+              {errors.name &&<FormFeedback data-cy="error-message">{errorMessages.name}</FormFeedback>}
             </FormGroup>
             <FormGroup>
               <Label for="lastname">Lastname:</Label>
@@ -117,10 +132,11 @@ export default function Register() {
                 type="text"
                 onChange={handleChange}
                 value={formData.lastname}
+                invalid={errors.lastname}
+                data-cy="lastname-input"
+
               />
-               {errors.lastname &&<FormFeedback>
-                {errorMessages.lastname}
-            </FormFeedback>}
+               {errors.lastname &&<FormFeedback data-cy="error-message">{errorMessages.lastname}</FormFeedback>}
             </FormGroup>
             <FormGroup>
               <Label for="email">Email:</Label>
@@ -131,10 +147,11 @@ export default function Register() {
                 type="email"
                 onChange={handleChange}
                 value={formData.email}
+                invalid={errors.email}
+                data-cy="email-input"
+
               />
-               {errors.email &&<FormFeedback>
-                {errorMessages.email}
-            </FormFeedback>}
+               {errors.email &&<FormFeedback data-cy="error-message">{errorMessages.email} </FormFeedback>}
             </FormGroup>
             <FormGroup>
               <Label for="password">Password:</Label>
@@ -145,14 +162,17 @@ export default function Register() {
                 type="password"
                 onChange={handleChange}
                 value={formData.password}
+                invalid={errors.password}
+                data-cy="password-input"
+
+
               />
-               {errors.password &&<FormFeedback>
-                {errorMessages.password}
-            </FormFeedback>}
+               {errors.password &&<FormFeedback data-cy="error-message">{errorMessages.password}</FormFeedback>}
             </FormGroup>
-            <Button disabled={!isValid}>Register</Button>
+            <Button disabled={!isValid} data-cy="submit-button">Register</Button>
           </Form>
         </CardBody>
+        { id && <CardFooter data-cy="id-output">Id:{id}</CardFooter>}
       </Card>
     </>
   );
